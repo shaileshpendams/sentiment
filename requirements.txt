@@ -1,0 +1,9 @@
+#
+flask
+firebase-admin
+nltk
+pandas
+scikit-learn
+flask-cors
+# flask==2.0.2
+# nltk==3.6.5
