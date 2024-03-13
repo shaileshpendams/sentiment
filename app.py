@@ -8,6 +8,8 @@ from firebase_admin import credentials, db
 from flask import Flask, render_template, request
 import json
 import pandas as pd
+import nltk
+nltk.download('stopwords')
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
@@ -20,7 +22,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.feature_extraction.text import CountVectorizer
 
 from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
 from flask_cors import CORS
