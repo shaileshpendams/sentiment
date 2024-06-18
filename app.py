@@ -33,9 +33,11 @@ data = ref.get()
 
 # Importing needed libraries
 import numpy as np
-from ast import literal_eval #module that converts a string of lists to a normal list
-hotelData = pd.read_csv('Hotel_reviews.csv')
-hotelData.head()
+from ast import literal_eval 
+
+# // csv code need uncomment after csv file add
+# hotelData = pd.read_csv('Hotel_reviews.csv')
+# hotelData.head()
 
 # print(hotelData)
 
