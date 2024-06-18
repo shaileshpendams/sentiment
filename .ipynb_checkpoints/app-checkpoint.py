@@ -1,15 +1,18 @@
-from flask import Flask, jsonify,request, render_template
+from flask import Flask, jsonify, render_template
 import json
 import firebase_admin
 from firebase_admin import credentials, db
 
+
+
+from flask import Flask, render_template, request
+import json
 import pandas as pd
 import nltk
 nltk.download('stopwords')
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
-from nltk.stem.wordnet import WordNetLemmatizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import SVC
 from sklearn.pipeline import Pipeline
@@ -23,22 +26,12 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
 from flask_cors import CORS
 
-cred = credentials.Certificate("analyzesentiment-41c85-firebase-adminsdk-dl7tz-a2996ff573.json")
+cred = credentials.Certificate("analyzesentiment-41c85-firebase-adminsdk-dl7tz-1a72dc3076.json")
 firebase_admin = firebase_admin.initialize_app(cred, {'databaseURL': 'https://analyzesentiment-41c85-default-rtdb.asia-southeast1.firebasedatabase.app'})
 
 ref = db.reference("/")
 ref = db.reference("/ReviewAndRating/")
 data = ref.get()
-
-
-# Importing needed libraries
-import numpy as np
-from ast import literal_eval #module that converts a string of lists to a normal list
-hotelData = pd.read_csv('Hotel_reviews.csv')
-hotelData.head()
-
-# print(hotelData)
-
 
 
 app = Flask(__name__)
@@ -129,8 +122,8 @@ rating_comment_df['sentiment'] = rating_comment_df['rating'].apply(sentiment_ana
 
 sentiment_counts = rating_comment_df['sentiment'].value_counts()
 
-# print(rating_counts , "hello111")
-# print(sentiment_counts , "hello155")
+print(rating_counts , "hello111")
+print(sentiment_counts , "hello155")
 
 # Your actual model training, evaluation, and predictions can go here
  # For demonstration, initializing a basic RandomForestClassifier
@@ -145,6 +138,7 @@ accuracy = accuracy_score(y_test, y_pred)
 # classification_rep = classification_report(y_test, y_pred, output_dict=True)
 classification_rep = classification_report(y_test, y_pred, output_dict=True, zero_division=1)
 
+print(sentiment_counts , "hello")
 
 @app.route('/api/feedback', methods=['GET'])
 def send_feedback():
@@ -178,39 +172,6 @@ def send_accuracy_results():
         # return jsonify({"accuracy": accuracy})
      else:
         return jsonify({"message": "No accuracy data available"})
-
-@app.route('/api/hotelsList', methods=['GET'])
-def send_hotelsList():
-        return jsonify('hello json skjdjfjsjsjkjfjsj')
-        # return jsonify({"accuracy": accuracy})
-
-
-
-
-
-
-# Sample hotel data
-hotel_data = [
-    {"name": "Hotel A", "location": "Hyderabad", "rating": 4.5},
-    {"name": "Hotel B", "location": "Hyderabad", "rating": 4.0},
-    {"name": "Hotel C", "location": "Bangalore", "rating": 4.2},
-    {"name": "Hotel D", "location": "Mumbai", "rating": 4.8}
-]
-@app.route('/api/recommend_hotels', methods=['POST'])
-def recommend_hotels():
-    request_data = request.json
-    user_location = request_data.get('location')
-    print('user_location')
-    if user_location:
-        # Filter hotels based on user location
-        recommended_hotels = [hotel for hotel in hotel_data if hotel['location'] == user_location]
-        
-        if recommended_hotels:
-            return jsonify({"recommendations": recommended_hotels})
-        else:
-            return jsonify({"message": f"No hotels found in {user_location}"})
-    else:
-        return jsonify({"message": "Location not provided in request"}), 400
 
 if __name__ == "__main__":
     app.run(debug=DEVELOPMENT_ENV)
