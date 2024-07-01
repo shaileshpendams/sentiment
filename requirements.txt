@@ -5,5 +5,9 @@ nltk
 pandas
 scikit-learn
 flask-cors
+joblib
+SQLAlchemy
+pymysql
+requests
 # flask==2.0.2
 # nltk==3.6.5

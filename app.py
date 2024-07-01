@@ -34,6 +34,11 @@ ref = db.reference("/ReviewAndRating/")
 data = ref.get()
 
 
+
+from sqlalchemy import create_engine
+import requests
+import joblib 
+
 # Importing needed libraries
 import numpy as np
 from ast import literal_eval #module that converts a string of lists to a normal list
@@ -288,5 +293,89 @@ def recommend_hotels():
             return jsonify({"message": f"No hotels found matching '{input_text}'"}), 404
     else:
         return jsonify({"message": "Input text not provided in request"}), 400
+    
+
+
+@app.route('/api/train', methods=['POST'])
+def train():
+    token = request.headers.get('x-api-token')
+    if not token:
+        return jsonify({'error': 'Authorization token is missing'}), 400
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+    status = data.get('status', 'tripall')
+    fetched_data = fetch_data(token, status)
+    if fetched_data:
+        print("Data fetched successfully:")
+        train_model(fetched_data)
+        global model
+        model = joblib.load('model.pkl')
+        return jsonify({'message': 'Model trained successfully'})
+    else:
+        return jsonify({'error': 'Failed to fetch data'}), 400
+
+# Database connection details
+DB_HOST = "localhost"
+DB_USER = "avplat"
+DB_PASS = "g=gP32?TewVEdAtS"
+DB_NAME = "avplat"
+SERVER_CONNECTION_STRING = "mysql+pymysql://avplat:g=gP32?TewVEdAtS@avplat-staging-upgraded-cluster.cluster-c8agfa7vorgz.ca-central-1.rds.amazonaws.com/avplat"
+engine = create_engine(SERVER_CONNECTION_STRING)
+
+
+
+
+def fetch_data(token, status):
+    url = "https://sapi.avplat.com/public/index.php?page=API&action=GetQuoteAll"
+    headers = {
+        "X-Api-Token": token,
+        "Accept": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    payload = {
+        "enct": 1,
+        "status": status
+    }
+    response = requests.post(url, headers=headers, data=payload)
+    if response.status_code == 200:
+        return response.json()  # Assuming the API returns JSON
+    else:
+        return None
+
+# Function to train the model
+def train_model(data):
+    # Assuming the data is in a format that can be converted to a DataFrame
+    df = pd.DataFrame(data['GetQuoteAll'])
+    
+    # Example feature extraction
+    X = df[['SRID', 'AircraftType', 'depart']]
+    y = df['Status']
+    
+    # Convert categorical data to numeric (this is just an example)
+    X = pd.get_dummies(X)
+    
+    # Initialize and train the model (RandomForestClassifier in this case)
+    model = RandomForestClassifier()
+    model.fit(X, y)
+    
+    # Save the trained model to a file
+    joblib.dump(model, 'model.pkl')
+
+
+@app.route('/api/search', methods=['POST'])
+def search():
+    token = request.headers.get('x-api-token')
+    if not token:
+        return jsonify({'error': 'Authorization token is missing'}), 400
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+    query = data.get('query')
+    print(query , "queryquery")
+    if not query:
+        return jsonify({'error': 'No query provided'}), 400
+    result = model.predict(query)
+    print(result , "resultresultresult")
 if __name__ == "__main__":
     app.run(debug=DEVELOPMENT_ENV)
